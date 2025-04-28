@@ -11,9 +11,7 @@ export async function scanProject() {
   function saveDescription(description: string) {
     try {
       localStorage.setItem("workana_project_description", description);
-      console.log("Descrição salva no localStorage.");
     } catch (error) {
-      console.error("Erro ao salvar descrição:", error);
     }
   }
 
@@ -33,14 +31,11 @@ export async function scanProject() {
       "bid_button"
     ) as HTMLAnchorElement | null;
     if (bidButton) {
-      console.log('Botão "Fazer uma proposta" encontrado. Simulando clique...');
       highlightButton(bidButton);
 
       setTimeout(() => {
         bidButton.click();
       }, 800);
-    } else {
-      console.error('Botão "Fazer uma proposta" não encontrado.');
     }
   }
 
@@ -48,8 +43,6 @@ export async function scanProject() {
     const description = getProjectDescription();
     if (description) {
       saveDescription(description);
-    } else {
-      console.error("Descrição do projeto não encontrada.");
     }
 
     setTimeout(() => {

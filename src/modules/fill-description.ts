@@ -1,50 +1,74 @@
 import { smoothScrollTo } from "../utils/scroll";
+import { GPTProposalResponse, generateProposal } from "./gpt-service";
+import { domSelectors, fallbackMessages } from "../utils/template-gpt";
 
-export async function fillProposalDetails() {
+export async function fillProposalDetails(gptResponse?: GPTProposalResponse | null) {
   const descriptionInput = document.getElementById(
-    "BidContent"
+    domSelectors.descriptionInput.replace("#", "")
   ) as HTMLTextAreaElement | null;
+
   const deliveryTimeInput = document.getElementById(
-    "BidDeliveryTime"
-  ) as HTMLInputElement | null;
-  const hoursInput = document.getElementById(
-    "Hours"
+    domSelectors.deliveryTimeInput.replace("#", "")
   ) as HTMLInputElement | null;
 
-  if (!descriptionInput || !deliveryTimeInput || !hoursInput) {
-    console.error("Algum campo obrigatório não foi encontrado.");
+  if (!descriptionInput || !deliveryTimeInput) {
+    console.error("Inputs obrigatórios não encontrados.");
     return;
   }
 
-  await smoothScrollTo(descriptionInput);
-  descriptionInput.focus();
-  descriptionInput.value =
-    "Olá, tenho experiência no desenvolvimento de projetos similares e estou à disposição para realizar este trabalho com qualidade e eficiência.";
-  descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
+  try {
+    let proposal: GPTProposalResponse;
 
-  await new Promise((resolve) => setTimeout(resolve, 500));
+    if (gptResponse) {
+      proposal = gptResponse;
+    } else {
+      const projectDescription = localStorage.getItem("workana_project_description");
+      if (!projectDescription) {
+        throw new Error("Descrição do projeto não disponível");
+      }
 
-  await smoothScrollTo(deliveryTimeInput);
-  deliveryTimeInput.focus();
-  deliveryTimeInput.value = "5 dias";
-  deliveryTimeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      const hourlyRate = localStorage.getItem("workana_hourly_rate") || "50";
 
-  await new Promise((resolve) => setTimeout(resolve, 500));
+      proposal = await generateProposal({
+        description: projectDescription,
+        hourlyRate: hourlyRate,
+      });
+    }
 
+    await smoothScrollTo(descriptionInput);
+    descriptionInput.focus();
+    descriptionInput.value = proposal.description;
+    descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await smoothScrollTo(deliveryTimeInput);
+    deliveryTimeInput.focus();
+    deliveryTimeInput.value = proposal.deliveryTime;
+    deliveryTimeInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+    localStorage.setItem("workana_gpt_answers", proposal.answersToQuestions);
+
+  } catch (error) {
+    console.error("Erro ao gerar proposta GPT. Preenchendo fallback.");
+
+    await smoothScrollTo(descriptionInput);
+    descriptionInput.focus();
+    descriptionInput.value = fallbackMessages.description;
+    descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  // Preparar botão de envio, mas sem clicar ainda
   const submitButton = document.querySelector(
-    'input[type="submit"].btn-primary'
+    domSelectors.submitButton
   ) as HTMLInputElement | null;
 
   if (submitButton) {
     await smoothScrollTo(submitButton);
-
     submitButton.style.transition = "box-shadow 0.5s ease, transform 0.3s ease";
     submitButton.style.boxShadow = "0 0 12px 4px #4CAF50";
     submitButton.style.transform = "scale(1.05)";
-    // Futuro: para clicar automaticamente, descomente a linha abaixo
-    // submitButton.click();
-    console.log("Botão de envio preparado para clique.");
-  } else {
-    console.error("Botão de envio de orçamento não encontrado.");
+    console.log("Botão de envio destacado. Pronto para clique.");
+    // submitButton.click(); // Descomente no futuro para clicar automaticamente
   }
 }
