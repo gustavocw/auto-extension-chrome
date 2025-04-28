@@ -1,5 +1,5 @@
 import { smoothScrollTo } from "../utils/scroll";
-import { fillProjectPortfolio } from "./SelectProjects";
+import { fillProjectPortfolio } from "./fill-projects";
 
 async function waitForSkillsList(timeout = 5000): Promise<boolean> {
   return new Promise((resolve) => {

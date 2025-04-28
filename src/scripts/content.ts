@@ -1,5 +1,5 @@
-import { fillProjectQuestions } from '../modules/InitialFillQuestions';
-import { scanProject } from '../modules/ScanProjects/ScanProject';
+import { fillProjectQuestions } from '../modules/fill-inputs';
+import { scanProject } from '../modules/ScanProjects';
 
 async function runSequence() {
   const currentUrl = window.location.href;

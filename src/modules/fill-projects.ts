@@ -1,6 +1,6 @@
 import { smoothScrollTo } from "../utils/scroll";
-import { fillProjectBudgetHours } from "./SelectHours";
-import { scanProject } from "./ScanProjects/ScanProject";
+import { fillProjectBudgetHours } from "./fill-hours";
+import { scanProject } from "./ScanProjects";
 
 export async function fillProjectPortfolio() {
   async function clickPortfolio(label: HTMLLabelElement) {

@@ -1,5 +1,5 @@
 import { smoothScrollTo } from '../utils/scroll';
-import { fillProposalDetails } from './fillDescription';
+import { fillProposalDetails } from './fill-description';
 
 export async function fillProjectBudgetHours() {
   const hoursInput = document.getElementById('Hours') as HTMLInputElement | null;
