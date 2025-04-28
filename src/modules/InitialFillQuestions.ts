@@ -1,6 +1,27 @@
 import { smoothScrollTo } from "../utils/scroll";
 import { fillProjectSkills } from "./ScanSkills";
 
+async function waitForInput(selector: string, timeout = 5000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const interval = 100;
+    let elapsed = 0;
+
+    const check = () => {
+      const element = document.querySelector(selector);
+      if (element) {
+        resolve(true);
+      } else if (elapsed >= timeout) {
+        resolve(false);
+      } else {
+        elapsed += interval;
+        setTimeout(check, interval);
+      }
+    };
+
+    check();
+  });
+}
+
 export async function fillProjectQuestions() {
   async function fillInput(input: HTMLInputElement, value: string) {
     await smoothScrollTo(input);
@@ -18,23 +39,27 @@ export async function fillProjectQuestions() {
   }
 
   async function fillCustomQuestions() {
-    let customIndex = 0;
-    while (true) {
-      const customInput = document.getElementById(
-        `custom-question-${customIndex}`
-      ) as HTMLInputElement | null;
-      if (!customInput) {
-        break;
-      }
-      await fillInput(customInput, "Resposta customizada");
-      customIndex++;
+    const customInputs = document.querySelectorAll<HTMLInputElement>(
+      'input[id^="customProjectQuestionsAnswers-question-"]'
+    );
+    for (const input of customInputs) {
+      await fillInput(input, "Resposta customizada");
     }
   }
 
   async function runFill() {
+    const ready = await waitForInput(
+      'input[id^="defaultProjectQuestionsAnswers-question-"], input[id^="customProjectQuestionsAnswers-question-"]'
+    );
+
+    if (!ready) {
+      console.error('Inputs de perguntas não carregaram.');
+      return;
+    }
+
     await fillDefaultQuestions();
     await fillCustomQuestions();
-    fillProjectSkills();
+    await fillProjectSkills();
   }
 
   runFill();

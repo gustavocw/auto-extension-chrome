@@ -1,5 +1,6 @@
 import { smoothScrollTo } from "../utils/scroll";
 import { fillProjectBudgetHours } from "./SelectHours";
+import { scanProject } from "./ScanProjects/ScanProject";
 
 export async function fillProjectPortfolio() {
   async function clickPortfolio(label: HTMLLabelElement) {
@@ -22,7 +23,14 @@ export async function fillProjectPortfolio() {
       await clickPortfolio(label);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    fillProjectBudgetHours();
+    
+    const currentUrl = window.location.href;
+    if (currentUrl.includes('workana.com/messages/bid/')) {
+      fillProjectBudgetHours();
+    } else {
+      console.log('Não está na página de projeto específico, apenas scanProject será executado');
+      scanProject();
+    }
   }
   
   await selectPortfolioProjects();
