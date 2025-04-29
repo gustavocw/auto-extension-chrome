@@ -9,7 +9,7 @@ async function runSequence() {
     await scanProject();
   } else if (currentUrl.includes('workana.com/messages/bid/')) {
     console.log('Página de envio de proposta detectada.');
-    await fillProjectQuestions(); // Só aqui preenche os inputs
+    await fillProjectQuestions();
   } else {
     console.log('Não está na página de projeto nem na página de proposta. Executando apenas scanProject.');
     await scanProject();

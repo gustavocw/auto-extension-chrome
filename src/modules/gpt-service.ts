@@ -17,6 +17,10 @@ export interface GPTRequestOptions {
   temperature?: number;
 }
 
+export interface SkillsRecommendation {
+  recommendedSkills: string[];
+}
+
 function createLoadingIndicator(message: string = loadingMessages.start): HTMLDivElement {
   removeLoadingIndicator();
 
@@ -148,5 +152,69 @@ export async function generateProposal(options: GPTRequestOptions): Promise<GPTP
       suggestedHours: 150, // Valor fixo de 150 horas
       answersToQuestions: fallbackMessages.answersToQuestions,
     };
+  }
+}
+
+// Função para obter habilidades recomendadas pelo GPT
+export async function getRecommendedSkills(
+  projectDescription: string
+): Promise<string[]> {
+  try {
+    const apiKey = localStorage.getItem("openai_api_key");
+    if (!apiKey) {
+      console.error("Chave da API do OpenAI não encontrada no localStorage");
+      return [];
+    }
+
+    updateLoadingIndicator("Analisando projeto para recomendar habilidades...");
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: localStorage.getItem("openai_model") || "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Você é um especialista em tecnologia que ajuda a escolher habilidades relevantes para projetos freelance. Analise a descrição do projeto e sugira as 5 habilidades mais relevantes. Responda apenas no formato JSON.",
+          },
+          {
+            role: "user",
+            content: `Analise a descrição deste projeto e sugira as 5 habilidades mais relevantes para candidatos freelancers. Responda APENAS no formato JSON sem formatação ou explicações.\n\nDescrição do projeto:\n${projectDescription}`,
+          },
+        ],
+        temperature: 0.5,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("Resposta vazia da API");
+    }
+
+    try {
+      const parsedContent = JSON.parse(content) as SkillsRecommendation;
+      removeLoadingIndicator();
+      return parsedContent.recommendedSkills || [];
+    } catch (parseError) {
+      console.error("Erro ao analisar resposta JSON:", parseError);
+      removeLoadingIndicator();
+      return [];
+    }
+  } catch (error) {
+    console.error("Erro ao obter habilidades recomendadas:", error);
+    removeLoadingIndicator();
+    return [];
   }
 }
